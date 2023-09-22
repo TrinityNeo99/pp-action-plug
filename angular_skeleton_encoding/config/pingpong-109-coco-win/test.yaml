@@ -1,0 +1,54 @@
+work_dir: ./work_dir/pingpong-109-coco/ase_train
+
+# feeder
+feeder: feeders.feeder.Feeder
+
+train_feeder_args:
+  data_path: ../dataset/2023-3-29_北体合作_示范动作/MS-G3D/pingpong-109-coco/train_data_joint.npy
+  label_path: ../dataset/2023-3-29_北体合作_示范动作/MS-G3D/pingpong-109-coco/train_label.pkl
+  debug: False
+  random_choose: False
+  random_shift: False
+  random_move: False
+  window_size: -1
+  normalization: False
+
+
+test_feeder_args:
+  data_path: ./temp/2023WTT新乡第二局6-6_Sub_01/infer_data_joint.npy
+  label_path: ./temp/2023WTT新乡第二局6-6_Sub_01/infer_label.pkl
+
+# model
+model: model.network.Model
+model_args:
+  in_channels: 12
+  num_class: 29
+  num_point: 17
+  num_person: 2
+  num_gcn_scales: 8
+  num_g3d_scales: 8
+  graph: graph.pingpong_coco.AdjMatrixGraph
+
+  # ablation
+  ablation: sgcn_only
+
+# optim
+weight_decay: 0.0005
+base_lr: 0.05
+step: [ 30,40,50 ]
+
+num_epoch: 60
+device: [ 0 ]
+batch_size: 40
+forward_batch_size: 40
+test_batch_size: 40
+nesterov: True
+
+optimizer: SGD
+
+eval_start: 5
+eval_interval: 5
+
+phase: test
+weights: ./resource/weights-epoch-best_model_90.pt
+save_score: True
