@@ -8,6 +8,7 @@
 """
 import os.path
 import shutil
+import time
 
 from public.config import *
 from yolo_keypoints import YoloExtractor
@@ -21,7 +22,8 @@ class Action:
         self.out_dir = out_dir
 
     def after_process(self, video_raw_name):
-        shutil.rmtree(os.path.join(self.out_dir, video_raw_name))
+        # time.sleep(1)
+        # shutil.rmtree(os.path.join(self.out_dir, video_raw_name))
         shutil.rmtree("./work_dir")
         pass
 
@@ -57,5 +59,5 @@ class Action:
 if __name__ == '__main__':
     a = Action()
     predict_labels, predict_labels_top3 = a.run(
-        r"F:\pingpong-all-data\2023-9-5_总成数据集\6-6-split\2023WTT新乡第二局6-6_Sub_01.mp4", "left")
+        r"./resource/2023WTT新乡第二局6-6_Sub_01.mp4", "left")
     print("this is the a.run out", predict_labels, predict_labels_top3)
