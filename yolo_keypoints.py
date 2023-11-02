@@ -45,13 +45,15 @@ class YoloExtractor():
             self.out_dir = out_dir
             self.files = os.listdir(self.data_dir)
 
-    def yolo_keypoints_on_image(self, image):
+    def yolo_keypoints_on_image(self, image, isDrawDectectBox=True, isDrawKeyPoint=False, isDrawText=False):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        left_kps, right_kps = [], []
         results = self.model.predict(image, device="0", save_conf=True, conf=0.25, verbose=False)
         for r in results:
             boxes = r.boxes
             keypoints = r.keypoints
-
+            if len(boxes) < 2:
+                break
             # select the bottom most two boxes
             box_id2right_y = [(b, boxes[b].xyxy[0][3]) for b in range(len(boxes))]
             sorted_box_id2right_y = sorted(box_id2right_y, key=lambda item: item[1], reverse=True)
@@ -60,9 +62,12 @@ class YoloExtractor():
             for id in box_id_top2:
                 kps = keypoints[id].xy.cpu().numpy().tolist()[0]
                 bounding = boxes[id].xyxy.cpu().numpy().tolist()[0]
-                # draw_skeleton_kps_on_origin(kps, image)  # the shape of kps is (1,17,2)
-                draw_box(image, p1=(int(bounding[0]), int(bounding[1])), p2=(int(bounding[2]), int(bounding[3])))
-                # draw_text(image, p1=(int(bounding[0]), int(bounding[1] - 20)), text="player")
+                if isDrawKeyPoint:
+                    draw_skeleton_kps_on_origin(kps, image)  # the shape of kps is (1,17,2)
+                if isDrawDectectBox:
+                    draw_box(image, p1=(int(bounding[0]), int(bounding[1])), p2=(int(bounding[2]), int(bounding[3])))
+                if isDrawText:
+                    draw_text(image, p1=(int(bounding[0]), int(bounding[1] - 20)), text="player")
 
             # the kps of left person and right person
             if boxes[box_id_top2[0]].xyxy[0][0] < boxes[box_id_top2[1]].xyxy[0][0]:
@@ -76,9 +81,17 @@ class YoloExtractor():
             # flat two-dim list 2 one-dim list
             left_kps = two_list_flat(left_kps)
             right_kps = two_list_flat(right_kps)
+
         return image, left_kps, right_kps
 
     def extract(self, args, save_key_points_csv=False, save_infer_video=False):
+        """
+
+        :param args:
+        :param save_key_points_csv: 以csv格式保存关键点提取结果
+        :param save_infer_video: 保存提取关键点的视频
+        :return:
+        """
         frame_num, fps, duration, width, height = video_info(args.video_path)
         keypoints_video_out_path = os.path.join(args.keypoints_dir, args.video_infer_raw_name)
         vout = get_vout_H264_mp4(keypoints_video_out_path)
@@ -93,7 +106,10 @@ class YoloExtractor():
                 pbar.update(1)
                 if not success:
                     break
-                image_ske, l_kps, r_kps = self.yolo_keypoints_on_image(image)
+                image_ske, l_kps, r_kps = self.yolo_keypoints_on_image(image, isDrawDectectBox=True,
+                                                                       isDrawKeyPoint=True)
+                if len(l_kps) < 0 or len(r_kps) < 0:
+                    continue
                 if save_infer_video:
                     vout.append_data(image_ske)
                 if save_key_points_csv:
@@ -105,7 +121,6 @@ class YoloExtractor():
             self.wirte_csv(args, l_kpss, out_name="pose-data-left.csv")
             self.wirte_csv(args, r_kpss, out_name="pose-data-right.csv")
         return l_kpss, r_kpss
-
 
     def wirte_csv(self, args, csv_output_rows, out_name="pose-data.csv"):
         csv_headers = ['frame']

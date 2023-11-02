@@ -1037,6 +1037,7 @@ def ase_gcn_pp_classify_api(video_raw_name):
     init_seed(arg.seed)
     arg.test_feeder_args['data_path'] = f"./temp/{video_raw_name}/infer_data_joint.npy"
     arg.test_feeder_args['label_path'] = f"./temp/{video_raw_name}/infer_label.pkl"
+    print("print this args: ", arg.test_feeder_args['data_path'], arg.test_feeder_args['label_path'])
     processor = Processor(arg)
     predict_labels, predict_labels_top3 = processor.start()
     return predict_labels, predict_labels_top3

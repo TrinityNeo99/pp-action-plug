@@ -19,6 +19,7 @@ import pandas as pd
 from numpy.lib.format import open_memmap
 
 import numpy as np
+
 sys.path.append("./keypointConvert")
 from preprocess import pre_normalization
 from gen_bone_data import process_bone
@@ -41,7 +42,17 @@ class Process():
 
     def load_joint_data(self):
         labels = []
-        files = os.listdir(self.data_path)
+        files = os.listdir(self.data_path)  # 可以支持多个文件
+        sorted(files)
+        print(files)
+        for f in files:
+            labels.append(self.label_test['test'])
+        print("process infer data...")
+        self.sub_process("infer", files, labels, csv_name=self.csv_name)
+
+    def load_joint_data_single(self, sample_name):
+        labels = []
+        files = [sample_name]  # 可以支持多个文件
         sorted(files)
         print(files)
         for f in files:
