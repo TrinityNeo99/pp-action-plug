@@ -58,6 +58,7 @@ class Action:
 
 if __name__ == '__main__':
     a = Action()
-    predict_labels, predict_labels_top3 = a.run(
-        r"./resource/2023WTT新乡第二局6-6_Sub_01.mp4", "left")
+    path = r"./resource/2023WTT新乡第二局6-6_Sub_01.mp4"
+    # path = r"E:\发球\serve\41.mp4"
+    predict_labels, predict_labels_top3 = a.run(path, "left")
     print("this is the a.run out", predict_labels, predict_labels_top3)

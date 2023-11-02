@@ -78,7 +78,7 @@ class YoloExtractor():
             right_kps = two_list_flat(right_kps)
         return image, left_kps, right_kps
 
-    def extract(self, args, save_key_points_csv=False):
+    def extract(self, args, save_key_points_csv=False, save_infer_video=False):
         frame_num, fps, duration, width, height = video_info(args.video_path)
         keypoints_video_out_path = os.path.join(args.keypoints_dir, args.video_infer_raw_name)
         vout = get_vout_H264_mp4(keypoints_video_out_path)
@@ -94,7 +94,8 @@ class YoloExtractor():
                 if not success:
                     break
                 image_ske, l_kps, r_kps = self.yolo_keypoints_on_image(image)
-                # vout.append_data(image_ske)
+                if save_infer_video:
+                    vout.append_data(image_ske)
                 if save_key_points_csv:
                     l_kps.insert(0, cnt)
                     r_kps.insert(0, cnt)
