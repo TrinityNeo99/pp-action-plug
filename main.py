@@ -6,6 +6,7 @@
 @version: 1.0.0a1.0
 @Date: 2023/9/22 19:47 at PyCharm
 """
+import json
 import os.path
 import shutil
 import time
@@ -57,10 +58,47 @@ class Action:
         return predict_labels, predict_labels_top3
 
 
-if __name__ == '__main__':
+def dict2json_format(d):
+    return json.dumps(d, sort_keys=True, indent=4, separators=(',', ':'), ensure_ascii=False)
+
+
+def batch_run(dir_path, result_output_path, direction="left"):
+    a = Action()
+    fs = os.listdir(dir_path)
+    results = {}
+    for f in fs:
+        predict_labels, predict_labels_top3 = a.run(os.path.join(dir_path, f), direction)
+        results[f"{f}-{direction}"] = {"name": "a", "predict_labels": predict_labels, "predict_labels_top3": predict_labels_top3}
+    j = dict2json_format(results)
+    local_time = time.localtime(time.time())
+    timestamp = f"{local_time.tm_year}_{local_time.tm_mon}_{local_time.tm_mday}"
+    with open(os.path.join(result_output_path, f"{timestamp}_{direction}_results.json"), "w+", encoding="utf-8") as fp:
+        fp.write(j)
+
+
+def demo(path):
     a = Action()
     # path = r"./resource/2023WTT新乡第二局6-6_Sub_01.mp4"
     # path = r"E:\发球\serve\41.mp4"
-    path = r"F:\pingpong-all-data\2023-11-2-发球测试数据集\serve\2.mp4"
+    path = r"E:\pingpong-all-data\2023-11-2-发球测试数据集\serve\4.mp4"
     predict_labels, predict_labels_top3 = a.run(path, "left")
     print("this is the a.run out", predict_labels, predict_labels_top3)
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Process some args.')
+    parser.add_argument('--batch_process', "-b", default=False, help="batch_process or not",
+                        action="store_true")
+    parser.add_argument('--path', "-p", default="", required=False, type=str,
+                        help="directory path for batch process or file path for demo")
+    parser.add_argument('--out_path', "-o", default='./temp', type=str, required=False,
+                        help="batch process output path")
+    parser.add_argument('--direction', "-dr", default='left', type=str, required=False,
+                        help="batch process output path")
+    args = parser.parse_args()
+    if args.batch_process == True:
+        batch_run(args.path, args.out_path, args.direction)
+    else:
+        demo(args.path)

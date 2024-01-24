@@ -252,4 +252,13 @@ def get_parser():
         default=dict(),
     )
 
+    # External Control Parameters
+    parser.add_argument('--batch_process', "-b", default=False, help="batch_process or not",
+                        action="store_true")
+    parser.add_argument('--path', "-p", default="", required=False, type=str,
+                        help="directory path for batch process or file path for demo")
+    parser.add_argument('--out_path', "-o", default='./temp', type=str, required=False,
+                        help="batch process output path")
+    parser.add_argument('--direction', "-dr", default='left', type=str, required=False,
+                        help="batch process output path")
     return parser

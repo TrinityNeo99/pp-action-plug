@@ -69,7 +69,6 @@ class Process():
         """
         with open(os.path.join(f'{self.out_path}', f'{part}_label.pkl'), 'wb') as f:
             pickle.dump((sample_name, sample_label), f)
-
         fp = open_memmap(
             os.path.join(f'{self.out_path}', f'{part}_data_joint.npy'),
             dtype='float32',
@@ -88,6 +87,9 @@ class Process():
         #   the middle of #5 and #6 are neck, while the middle of #11 and #12 are spine
         #   line between two middle points is spine, which should be parallel to z-axis
         fp = pre_normalization(fp, zaxis=[5, 6, 11, 12], xaxis=[5, 6])
+        del fp
+
+
 
     def read_xy_unified_padding_z_with_zero(self, file):
         df = pd.read_csv(file)
