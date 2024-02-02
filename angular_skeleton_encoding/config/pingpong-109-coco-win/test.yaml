@@ -22,7 +22,7 @@ test_feeder_args:
 model: model.network.Model
 model_args:
   in_channels: 12
-  num_class: 29
+  num_class: 14
   num_point: 17
   num_person: 2
   num_gcn_scales: 8
@@ -50,5 +50,5 @@ eval_start: 5
 eval_interval: 5
 
 phase: test
-weights: ./resource/weights-epoch-best_model_90.pt
+weights: ./resource/pp-start-challenge-weights-epoch-best_model_40.pt
 save_score: True

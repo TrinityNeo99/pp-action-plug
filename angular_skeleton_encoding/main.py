@@ -42,9 +42,10 @@ from torch.optim.lr_scheduler import MultiStepLR
 import apex
 
 from angular_skeleton_encoding.utils import count_params, import_class, get_current_time
-from pingpong_class_labels import pp_labels
+from pingpong_class_labels import pp_labels, pp_star_challenge
 
-
+pp_labels = []
+pp_labels = pp_star_challenge
 def init_seed(seed):
     torch.cuda.manual_seed_all(seed)
     torch.manual_seed(seed)
@@ -1014,7 +1015,7 @@ def main():
     processor = Processor(arg)
     processor.start()
 
-def ase_gcn_pp_classify_api(video_raw_name):
+def ase_gcn_pp_classify_api(video_raw_name, output_path):
     parser = get_parser()
 
     # load arg form config file
@@ -1035,8 +1036,8 @@ def ase_gcn_pp_classify_api(video_raw_name):
     # if arg.phase == 'train':
     arg.work_dir = os.path.join(arg.work_dir, get_current_time())
     init_seed(arg.seed)
-    arg.test_feeder_args['data_path'] = f"./temp/{video_raw_name}/infer_data_joint.npy"
-    arg.test_feeder_args['label_path'] = f"./temp/{video_raw_name}/infer_label.pkl"
+    arg.test_feeder_args['data_path'] = os.path.join(output_path, f"{video_raw_name}/infer_data_joint.npy")
+    arg.test_feeder_args['label_path'] = os.path.join(output_path, f"{video_raw_name}/infer_label.pkl")
     print("print this args: ", arg.test_feeder_args['data_path'], arg.test_feeder_args['label_path'])
     processor = Processor(arg)
     predict_labels, predict_labels_top3 = processor.start()

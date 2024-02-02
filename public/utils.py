@@ -811,6 +811,9 @@ def two_list_flat(two_dimensional_list: list):
     """
     return [element for sublist in two_dimensional_list for element in sublist]
 
+def dict2json_format(d):
+    return json.dumps(d, sort_keys=True, indent=4, separators=(',', ':'), ensure_ascii=False)
+
 if __name__ == "__main__":
     A = [0, 0]
     B = [2, 0]

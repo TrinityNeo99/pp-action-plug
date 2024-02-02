@@ -10,6 +10,10 @@ import math
 
 import numpy as np
 import cv2
+import matplotlib
+import matplotlib.pyplot as plt
+from collections import Counter
+import json
 
 KEYPOINT = {
     0: 'nose',
@@ -91,14 +95,40 @@ def draw_text(img, p1, text=""):
     cv2.putText(img, text, org, fontFace, fontScale, fontcolor, thickness, lineType)
     return img
 
-if __name__ == "__main__":
-    f = [13, 27, 42, 55, 70, 83]  # 01-standard
-    f = [1, 16, 32, 47, 62, 75, 91, 104, 119, 132, 147, 161]  # 06-high-backswing
-    f = [1, 12, 31, 41, 61, 71, 89, 99, 117, 129]  # 07-low-backswing
-    f = [2, 11, 27, 36, 54, 64, 78, 91, 108, 121, 136, 149, 165, 179, 192, 200]  # 05-high-gravity
+def results_visualization(file_path):
+    with open(file_path, 'rb') as file:
+        data = json.load(file)
 
-    file = r"F:\HRnet-test\01-pose-output\01-pose-output\pose-data.csv"  # 01-stardard
-    file = r"F:\HRnet-test\wrong_action\05-pose\pose-data.csv"  # 05
-    mask = ['right_eye', 'left_eye']
-    for n in f:
-        draw_skeleton(file, n, mask)
+    # Extract 'predict_labels' from the data
+    all_predict_labels = [item['predict_labels'][0] for item in data.values() if item['predict_labels']]
+
+    # Count the frequency of each label
+    label_counts = Counter(all_predict_labels)
+
+    # Preparing data for plotting
+    labels, counts = zip(*label_counts.items())
+
+    # Setting matplotlib to display Chinese characters
+    matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # Or your preferred font
+    matplotlib.rcParams['font.family'] = 'sans-serif'
+    matplotlib.rcParams['axes.unicode_minus'] = False
+
+    # Plotting the distribution
+    plt.figure(figsize=(15, 8))
+    plt.bar(labels, counts)
+    plt.xlabel('预测标签')
+    plt.ylabel('频率')
+    plt.title('预测标签的分布')
+    plt.xticks(rotation=90)
+    plt.savefig("distribution.png", dpi=400)
+
+
+def test():
+    fig = plt.figure(num=1, figsize=(4, 4))
+    plt.plot([1, 2, 3, 4], [1, 2, 3, 4])
+    plt.show()
+
+if __name__ == "__main__":
+    # results_visualization(r"E:\pingpong-all-data\2024-1-25_国家队技术评估_动作分类\actions_results\2024_1_25_20_43_8_results.json")
+    test()
+

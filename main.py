@@ -11,6 +11,7 @@ import os.path
 import shutil
 import time
 
+import tqdm
 from public.config import *
 from yolo_keypoints import YoloExtractor
 from keypointConvert import Process
@@ -42,17 +43,18 @@ class Action:
         convertor.load_joint_data_single(video_raw_name)
         # convertor.load_bone_data()
 
-    def run(self, video_path, person_pose: str, save_delete_middle_files=True):
+    def run(self, video_path, person_pose: str, save_delete_middle_files=True, not_generate_data=False):
         '''
         for multiple video usage, just run this function for multi times
         :param video_path: 视频路径
         :param person_pose: 人员位置: "left" / "right"
         :return: top3 labels
         '''
-
-        video_raw_name = self.video2keypoint(video_path)
-        self.convert2npy(video_raw_name, person_pose)
-        predict_labels, predict_labels_top3 = ase_gcn_pp_classify_api(video_raw_name)
+        video_raw_name = os.path.basename(video_path).split(".")[0]
+        if not_generate_data == False:
+            self.video2keypoint(video_path)
+            self.convert2npy(video_raw_name, person_pose)
+        predict_labels, predict_labels_top3 = ase_gcn_pp_classify_api(video_raw_name, self.out_dir)
         if save_delete_middle_files:
             self.after_process(video_raw_name)
         return predict_labels, predict_labels_top3
@@ -62,18 +64,33 @@ def dict2json_format(d):
     return json.dumps(d, sort_keys=True, indent=4, separators=(',', ':'), ensure_ascii=False)
 
 
-def batch_run(dir_path, result_output_path, direction="left"):
-    a = Action()
+def batch_run(dir_path, result_output_path):
+    '''
+    run videos by batch
+    :param dir_path: directory of videos
+    :param result_output_path:
+    :return:
+    '''
+    a = Action(result_output_path)
     fs = os.listdir(dir_path)
     results = {}
-    for f in fs:
-        predict_labels, predict_labels_top3 = a.run(os.path.join(dir_path, f), direction)
-        results[f"{f}-{direction}"] = {"name": "a", "predict_labels": predict_labels, "predict_labels_top3": predict_labels_top3}
+    with tqdm.tqdm(total=len(fs), desc="process...") as pbar:
+        for f in fs:
+            direction = parse_filename(f)
+            predict_labels, predict_labels_top3 = a.run(os.path.join(dir_path, f), direction, not_generate_data=True)
+            results[f] = {"name": f"{direction}", "predict_labels": predict_labels,
+                          "predict_labels_top3": predict_labels_top3}
+            pbar.update(1)
     j = dict2json_format(results)
     local_time = time.localtime(time.time())
-    timestamp = f"{local_time.tm_year}_{local_time.tm_mon}_{local_time.tm_mday}"
-    with open(os.path.join(result_output_path, f"{timestamp}_{direction}_results.json"), "w+", encoding="utf-8") as fp:
+    timestamp = f"{local_time.tm_year}_{local_time.tm_mon}_{local_time.tm_mday}_{local_time.tm_hour}_{local_time.tm_min}_{local_time.tm_sec}"
+    with open(os.path.join(result_output_path, f"{timestamp}_results.json"), "w+", encoding="utf-8") as fp:
         fp.write(j)
+
+
+def parse_filename(name: str):
+    direction = name.split(".mp4")[0][-1]
+    return "right" if direction == "R" else "left"
 
 
 def demo(path):
@@ -99,6 +116,6 @@ if __name__ == '__main__':
                         help="batch process output path")
     args = parser.parse_args()
     if args.batch_process == True:
-        batch_run(args.path, args.out_path, args.direction)
+        batch_run(args.path, args.out_path)
     else:
         demo(args.path)
